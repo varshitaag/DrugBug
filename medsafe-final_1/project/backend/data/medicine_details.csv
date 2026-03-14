@@ -1,0 +1,16 @@
+Medicine Name,Composition,Uses,Side_effects,Manufacturer
+Aspirin 75mg,Aspirin (75mg),Used to prevent blood clots and reduce fever and mild pain. Also used as a blood thinner in heart disease patients.,"Nausea, stomach pain, heartburn, easy bruising, ringing in ears",Bayer Pharmaceuticals
+Metformin 500mg,Metformin Hydrochloride (500mg),Used to treat type 2 diabetes by controlling blood sugar levels. Works by decreasing glucose production in the liver.,"Nausea, diarrhoea, stomach upset, loss of appetite",Sun Pharma
+Atorvastatin 10mg,Atorvastatin Calcium (10mg),Used to lower cholesterol and triglycerides in the blood. Reduces the risk of heart attack and stroke.,"Muscle pain, diarrhoea, indigestion, joint pain",Pfizer
+Warfarin 5mg,Warfarin Sodium (5mg),Blood thinner used to prevent blood clots in veins and arteries. Used in atrial fibrillation and after mechanical heart valves.,"Bleeding, bruising easily, nausea, abdominal pain",Abbott Healthcare
+Lisinopril 10mg,Lisinopril (10mg),ACE inhibitor used to treat high blood pressure and heart failure. Also used after heart attacks.,"Dry cough, dizziness, headache, elevated potassium",Cipla
+Levothyroxine 50mcg,Levothyroxine Sodium (50mcg),Thyroid hormone replacement for hypothyroidism. Restores normal thyroid hormone levels.,"Hair loss, sweating, nervousness, irregular heartbeat",Abbott
+Amoxicillin 500mg,Amoxicillin (500mg),Antibiotic used to treat bacterial infections including ear, chest, and urinary tract infections.,"Diarrhoea, rash, nausea, vomiting",GSK
+Paracetamol 500mg,Paracetamol (500mg),Used to relieve mild to moderate pain and reduce fever.,"Nausea, stomach pain (rare), liver damage in overdose",Cipla
+Ciprofloxacin 500mg,Ciprofloxacin Hydrochloride (500mg),Broad-spectrum antibiotic for urinary tract, respiratory, and skin infections.,"Nausea, diarrhoea, dizziness, tendon pain",Bayer
+Amlodipine 5mg,Amlodipine Besylate (5mg),Calcium channel blocker used to treat high blood pressure and angina.,"Swelling in ankles, flushing, dizziness, fatigue",Pfizer
+Doxycycline 100mg,Doxycycline Hyclate (100mg),Antibiotic used for bacterial infections, acne, and malaria prevention.,"Nausea, vomiting, photosensitivity, oesophageal irritation",Sun Pharma
+Simvastatin 20mg,Simvastatin (20mg),Statin used to lower cholesterol and reduce cardiovascular risk.,"Muscle pain, liver enzyme changes, headache",Merck
+Fluoxetine 20mg,Fluoxetine Hydrochloride (20mg),SSRI antidepressant used for depression, anxiety, OCD, and panic disorder.,"Nausea, insomnia, headache, sexual dysfunction",Eli Lilly
+Omeprazole 20mg,Omeprazole (20mg),Proton pump inhibitor used to reduce stomach acid in ulcers and GERD.,"Headache, diarrhoea, nausea, abdominal pain",AstraZeneca
+Digoxin 0.25mg,Digoxin (0.25mg),Used to treat heart failure and atrial fibrillation by strengthening heart contractions.,"Nausea, vomiting, vision changes, irregular heartbeat",GSK
