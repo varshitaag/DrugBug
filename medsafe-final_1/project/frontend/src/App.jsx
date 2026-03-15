@@ -1,15 +1,16 @@
 import { useState } from "react";
 import DrugSearch from "./components/DrugSearch";
-import FoodInteraction from "./components/FoodInteraction";
 import MedicationReminder from "./components/MedicationReminder";
+import useMedicationReminderScheduler from "./hooks/useMedicationReminderScheduler";
 
 const TABS = [
   { id: "drug", label: "💊 Drug Info" },
-  { id: "interaction", label: "🥗 Food Interaction" },
   { id: "reminder", label: "⏰ Reminders" },
 ];
 
 export default function App() {
+  useMedicationReminderScheduler();
+
   const [activeTab, setActiveTab] = useState("drug");
   const [selectedDrug, setSelectedDrug] = useState(null);
 
@@ -57,9 +58,6 @@ export default function App() {
               onDrugSelect={setSelectedDrug}
               selectedDrug={selectedDrug}
             />
-          )}
-          {activeTab === "interaction" && (
-            <FoodInteraction prefilledDrug={selectedDrug?.brandName || ""} />
           )}
           {activeTab === "reminder" && <MedicationReminder />}
         </div>

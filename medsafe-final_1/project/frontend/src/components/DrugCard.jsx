@@ -57,8 +57,41 @@ export default function DrugCard({ drug, source, suggestions = [] }) {
         <Section title="Side Effects" icon="⚠️" content={drug.warnings} />
       </div>
 
+      {drug.foodInteractions?.length > 0 && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-3">
+          <div>
+            <h4 className="text-sm font-bold text-red-800">🥗 Foods to watch with this tablet</h4>
+            <p className="text-xs text-red-700 mt-1">
+              Based on the drug name and composition, these foods or drinks may cause problems.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            {drug.foodInteractions.map((interaction) => (
+              <div key={interaction.summary} className="bg-white border border-red-100 rounded-lg p-3">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <p className="font-semibold text-gray-800 capitalize">
+                    {interaction.foodKeywords.join(", ")}
+                  </p>
+                  <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${
+                    interaction.riskLevel === "HIGH"
+                      ? "bg-red-500 text-white"
+                      : interaction.riskLevel === "MODERATE"
+                        ? "bg-yellow-300 text-yellow-900"
+                        : "bg-green-500 text-white"
+                  }`}>
+                    {interaction.riskLevel}
+                  </span>
+                </div>
+                <p className="text-sm text-gray-600 mt-2">{interaction.summary}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       <div className="bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 text-sm text-orange-800">
-        💡 <strong>Tip:</strong> Switch to the <em>Food Interaction</em> tab to check how this drug reacts with your food.
+        💡 <strong>Tip:</strong> The risky foods list above is based on this medicine's name and composition. Always confirm with your doctor for personal dietary advice.
       </div>
     </div>
   );

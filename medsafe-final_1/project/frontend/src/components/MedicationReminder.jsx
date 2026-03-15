@@ -2,6 +2,13 @@ import { useState, useEffect } from "react";
 
 const STORAGE_KEY = "medsafe_reminders";
 
+function getNotificationStatus() {
+  if (typeof window === "undefined") return "unsupported";
+  if (!("Notification" in window)) return "unsupported";
+  if (!window.isSecureContext) return "insecure";
+  return Notification.permission;
+}
+
 export default function MedicationReminder() {
   const [reminders, setReminders] = useState(() => {
     try {
@@ -11,9 +18,7 @@ export default function MedicationReminder() {
     }
   });
   const [form, setForm] = useState({ drugName: "", time: "", note: "" });
-  const [permissionGranted, setPermissionGranted] = useState(
-    Notification.permission === "granted"
-  );
+  const [notificationStatus, setNotificationStatus] = useState(getNotificationStatus());
   const [saved, setSaved] = useState(false);
 
   // Save to localStorage whenever reminders change
@@ -21,31 +26,31 @@ export default function MedicationReminder() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(reminders));
   }, [reminders]);
 
-  // Check reminders every 30 seconds
+  // Keep status in sync if user changes site notification setting.
   useEffect(() => {
-    const interval = setInterval(() => {
-      if (!permissionGranted) return;
-      const now = new Date();
-      const currentTime = `${String(now.getHours()).padStart(2, "0")}:${String(
-        now.getMinutes()
-      ).padStart(2, "0")}`;
-
-      reminders.forEach((r) => {
-        if (r.time === currentTime) {
-          new Notification(`💊 Time to take ${r.drugName}!`, {
-            body: r.note || "Don't forget your medication.",
-            icon: "/pill.svg",
-          });
-        }
-      });
-    }, 30000);
-
-    return () => clearInterval(interval);
-  }, [reminders, permissionGranted]);
+    const sync = () => setNotificationStatus(getNotificationStatus());
+    window.addEventListener("focus", sync);
+    return () => window.removeEventListener("focus", sync);
+  }, []);
 
   const requestPermission = async () => {
+    if (typeof window === "undefined" || !("Notification" in window)) {
+      setNotificationStatus("unsupported");
+      return;
+    }
+    if (!window.isSecureContext) {
+      setNotificationStatus("insecure");
+      return;
+    }
     const perm = await Notification.requestPermission();
-    setPermissionGranted(perm === "granted");
+    setNotificationStatus(perm);
+  };
+
+  const sendTestNotification = () => {
+    if (notificationStatus !== "granted") return;
+    new Notification("💊 MedSafe reminder test", {
+      body: "Notifications are working for your browser.",
+    });
   };
 
   const addReminder = () => {
@@ -75,21 +80,37 @@ export default function MedicationReminder() {
   return (
     <div className="space-y-5">
       {/* Notification Permission Banner */}
-      {!permissionGranted && (
+      {notificationStatus !== "granted" && (
         <div className="bg-yellow-50 border border-yellow-300 rounded-xl px-4 py-4 flex items-center justify-between gap-4">
           <div>
             <p className="font-semibold text-yellow-800 text-sm">
               🔔 Enable Notifications
             </p>
             <p className="text-yellow-700 text-xs">
-              Allow notifications to get reminded when it's time to take your medicine.
+              {notificationStatus === "unsupported"
+                ? "This browser does not support notifications."
+                : notificationStatus === "insecure"
+                  ? "Notifications require a secure context (localhost or https)."
+                  : notificationStatus === "denied"
+                    ? "Notifications are blocked. Enable them from browser site settings."
+                    : "Allow notifications to get reminded when it's time to take your medicine."}
             </p>
           </div>
           <button
             onClick={requestPermission}
             className="btn-secondary text-sm whitespace-nowrap"
+            disabled={notificationStatus === "unsupported" || notificationStatus === "insecure"}
           >
             Enable
+          </button>
+        </div>
+      )}
+
+      {notificationStatus === "granted" && (
+        <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center justify-between gap-3">
+          <p className="text-sm text-green-800 font-medium">✅ Notifications enabled</p>
+          <button onClick={sendTestNotification} className="btn-secondary text-sm">
+            Send Test
           </button>
         </div>
       )}
