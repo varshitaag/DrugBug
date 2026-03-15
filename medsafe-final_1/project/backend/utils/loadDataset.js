@@ -5,6 +5,38 @@ const csv = require("csv-parser");
 let drugDatabase = [];
 let drugIndex = {}; // lowercase name → record (O(1) lookup)
 
+function isJsonMetadataDisguisedAsCsv(filePath) {
+  try {
+    const head = fs.readFileSync(filePath, "utf8").slice(0, 800).trim();
+    return head.startsWith("{") && (head.includes('"@context"') || head.includes('"recordSet"'));
+  } catch {
+    return false;
+  }
+}
+
+function resolveBestDatasetPath() {
+  const envPath = process.env.DATASET_PATH
+    ? path.resolve(process.cwd(), process.env.DATASET_PATH)
+    : null;
+
+  const candidates = [
+    envPath,
+    path.join(__dirname, "../data/Medicine_Details.csv"),
+    path.join(__dirname, "../data/medicine_details.csv"),
+    path.join(__dirname, "../Medicine_Details.csv"),
+    path.join(__dirname, "../medicine_details.csv"),
+  ].filter(Boolean);
+
+  const existingCsvFiles = candidates.filter((p) => fs.existsSync(p));
+  const validCsvFiles = existingCsvFiles.filter((p) => !isJsonMetadataDisguisedAsCsv(p));
+
+  if (validCsvFiles.length === 0) return null;
+
+  // Prefer larger files — usually the full Kaggle dataset.
+  validCsvFiles.sort((a, b) => fs.statSync(b).size - fs.statSync(a).size);
+  return validCsvFiles[0];
+}
+
 /**
  * Loads the Kaggle CSV into memory once at startup.
  *
@@ -17,16 +49,22 @@ let drugIndex = {}; // lowercase name → record (O(1) lookup)
  */
 function loadDataset() {
   return new Promise((resolve) => {
-    const filePath = path.join(__dirname, "../data/medicine_details.csv");
+    const filePath = resolveBestDatasetPath();
 
-    if (!fs.existsSync(filePath)) {
+    drugDatabase = [];
+    drugIndex = {};
+
+    if (!filePath) {
       console.warn(
-        "⚠️  No dataset found at backend/data/medicine_details.csv\n" +
-        "   Download from Kaggle, rename to medicine_details.csv, and place it there.\n" +
+        "⚠️  No valid dataset CSV found.\n" +
+        "   Place Medicine_Details.csv (Kaggle full file) in backend/data,\n" +
+        "   or set DATASET_PATH in backend/.env.\n" +
         "   App will fall back to OpenFDA for drug searches."
       );
       return resolve();
     }
+
+    console.log(`📦 Loading dataset from: ${filePath}`);
 
     fs.createReadStream(filePath)
       .pipe(csv())

@@ -207,12 +207,48 @@ const INTERACTION_RULES = [
   },
 ];
 
+const RISK_PRIORITY = {
+  HIGH: 3,
+  MODERATE: 2,
+  LOW: 1,
+  NO_INTERACTION: 0,
+};
+
+function normalizeText(value) {
+  return String(value || "").toLowerCase().trim();
+}
+
+function buildDrugSearchText(drugInput) {
+  if (Array.isArray(drugInput)) {
+    return drugInput.map(normalizeText).filter(Boolean).join(" ");
+  }
+
+  if (drugInput && typeof drugInput === "object") {
+    return [
+      drugInput.brandName,
+      drugInput.genericName,
+      drugInput.description,
+      drugInput.composition,
+      drugInput.name,
+    ]
+      .map(normalizeText)
+      .filter(Boolean)
+      .join(" ");
+  }
+
+  return normalizeText(drugInput);
+}
+
+function dedupeKeywords(keywords) {
+  return [...new Set((keywords || []).map((keyword) => keyword.trim()).filter(Boolean))];
+}
+
 /**
  * Find interaction between a drug and food using keyword matching.
  */
 function findInteraction(drugName, foodItem) {
-  const drugQ = drugName.toLowerCase().trim();
-  const foodQ = foodItem.toLowerCase().trim();
+  const drugQ = buildDrugSearchText(drugName);
+  const foodQ = normalizeText(foodItem);
 
   for (const rule of INTERACTION_RULES) {
     const drugMatch = rule.drugKeywords.some((k) => drugQ.includes(k));
@@ -241,4 +277,50 @@ function findInteraction(drugName, foodItem) {
   };
 }
 
-module.exports = { findInteraction, INTERACTION_RULES };
+function findProblemFoodsForDrug(drugInput) {
+  const drugQ = buildDrugSearchText(drugInput);
+
+  if (!drugQ) {
+    return [];
+  }
+
+  const matches = INTERACTION_RULES.filter((rule) =>
+    rule.drugKeywords.some((keyword) => drugQ.includes(keyword))
+  ).map((rule) => ({
+    riskLevel: rule.riskLevel,
+    summary: rule.summary,
+    explanation: rule.explanation,
+    precautions: rule.precautions,
+    timing: rule.timing,
+    foodKeywords: dedupeKeywords(rule.foodKeywords),
+    primaryFood: dedupeKeywords(rule.foodKeywords)[0] || "Food interaction",
+  }));
+
+  const deduped = new Map();
+
+  for (const match of matches) {
+    const key = match.summary;
+    const existing = deduped.get(key);
+
+    if (!existing) {
+      deduped.set(key, match);
+      continue;
+    }
+
+    deduped.set(key, {
+      ...existing,
+      riskLevel:
+        RISK_PRIORITY[match.riskLevel] > RISK_PRIORITY[existing.riskLevel]
+          ? match.riskLevel
+          : existing.riskLevel,
+      foodKeywords: dedupeKeywords([...existing.foodKeywords, ...match.foodKeywords]),
+      primaryFood: existing.primaryFood,
+    });
+  }
+
+  return [...deduped.values()].sort(
+    (a, b) => RISK_PRIORITY[b.riskLevel] - RISK_PRIORITY[a.riskLevel]
+  );
+}
+
+module.exports = { findInteraction, findProblemFoodsForDrug, INTERACTION_RULES };

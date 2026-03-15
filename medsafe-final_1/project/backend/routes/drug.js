@@ -1,7 +1,25 @@
 const express = require("express");
 const axios = require("axios");
 const { searchDrug, isDatabaseLoaded } = require("../utils/loadDataset");
+const { findProblemFoodsForDrug } = require("../utils/foodInteractions");
 const router = express.Router();
+
+function buildDrugPayload(drug) {
+  const payload = {
+    brandName: drug.brandName,
+    genericName: drug.genericName,
+    manufacturer: drug.manufacturer,
+    purpose: drug.purpose,
+    warnings: drug.warnings,
+    dosage: drug.dosage,
+    description: drug.description,
+  };
+
+  return {
+    ...payload,
+    foodInteractions: findProblemFoodsForDrug(payload),
+  };
+}
 
 // GET /api/drug/search?name=aspirin
 router.get("/search", async (req, res) => {
@@ -17,7 +35,7 @@ router.get("/search", async (req, res) => {
       return res.json({
         success: true,
         source: "local-dataset",
-        drug: {
+        drug: buildDrugPayload({
           brandName:    d.name,
           genericName:  d.composition || "See composition",
           manufacturer: d.manufacturer || "N/A",
@@ -25,7 +43,7 @@ router.get("/search", async (req, res) => {
           warnings:     d.sideEffects || "No side effects information available.",
           dosage:       "Follow your doctor's prescription.",
           description:  d.composition || "N/A",
-        },
+        }),
         suggestions: results.map((r) => r.name),
       });
     }
@@ -40,7 +58,7 @@ router.get("/search", async (req, res) => {
     return res.json({
       success: true,
       source: "openfda",
-      drug: {
+      drug: buildDrugPayload({
         brandName:    result.openfda?.brand_name?.[0] || name,
         genericName:  result.openfda?.generic_name?.[0] || "N/A",
         manufacturer: result.openfda?.manufacturer_name?.[0] || "N/A",
@@ -48,7 +66,7 @@ router.get("/search", async (req, res) => {
         warnings:     result.warnings?.[0] || result.warnings_and_cautions?.[0] || "No warnings available.",
         dosage:       result.dosage_and_administration?.[0] || "No dosage information available.",
         description:  result.description?.[0] || "No description available.",
-      },
+      }),
       suggestions: [],
     });
   } catch {
@@ -61,7 +79,7 @@ router.get("/search", async (req, res) => {
       return res.json({
         success: true,
         source: "openfda",
-        drug: {
+        drug: buildDrugPayload({
           brandName:    result.openfda?.brand_name?.[0] || name,
           genericName:  result.openfda?.generic_name?.[0] || name,
           manufacturer: result.openfda?.manufacturer_name?.[0] || "N/A",
@@ -69,7 +87,7 @@ router.get("/search", async (req, res) => {
           warnings:     result.warnings?.[0] || result.warnings_and_cautions?.[0] || "No warnings available.",
           dosage:       result.dosage_and_administration?.[0] || "No dosage information available.",
           description:  result.description?.[0] || "No description available.",
-        },
+        }),
         suggestions: [],
       });
     } catch {

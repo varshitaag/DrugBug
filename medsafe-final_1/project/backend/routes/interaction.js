@@ -1,6 +1,18 @@
 const express = require("express");
-const { findInteraction } = require("../utils/foodInteractions");
+const { findInteraction, findProblemFoodsForDrug } = require("../utils/foodInteractions");
 const router = express.Router();
+
+// GET /api/interaction/foods?drugName=metformin
+router.get("/foods", (req, res) => {
+  const { drugName } = req.query;
+
+  if (!drugName) {
+    return res.status(400).json({ error: "drugName is required." });
+  }
+
+  const foods = findProblemFoodsForDrug(drugName);
+  res.json({ success: true, foods });
+});
 
 // POST /api/interaction
 // Body: { drugName, foodItem }
